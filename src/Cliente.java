@@ -32,57 +32,70 @@ public class Cliente {
             entrada = new DataInputStream(socket.getInputStream());
             saida = new DataOutputStream(socket.getOutputStream());
             
-            //Recebe do usuario algum valor
+            // Recebe do usuario algum valor (Leitor de entrada do teclado)
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
             
-            // Receber o valor utilizando Json            
-            int opcao_usuario = 0;
+            // Receber o valor             
+            int opcao = 0;
 
             // Enquanto o usuário desejar permanecer no menu Cliente
             do {
-                // Exibe o menu para o usuário
-                System.out.println("\nBem-vindo ao Software Cliente!");
+                // Exibe o menu
+                System.out.println("\nBem-vindo Cliente! 😁");
                 System.out.println(" ==== Menu de Opções: ==== ");
-                System.out.println("1 - Obter fortuna aleatória");
-                System.out.println("2 - Adicionar nova fortuna ao banco de dados");
+                System.out.println("1 - Fortuna aleatória");
+                System.out.println("2 - Adicionar nova fortuna");
                 System.out.println("3 - Finalizar Conexão");
-                System.out.print("Digite sua opção: ");
+                System.out.print("Digite apenas o número da sua opção: ");
 
                 try {
+                	// Le a opção digitada pelo usuário
                     String opcaoStr = br.readLine();
-                    opcao_usuario = Integer.parseInt(opcaoStr);
+                    opcao = Integer.parseInt(opcaoStr);
 
                     String json = "";
                     
                     // Solicita uma fortuna aleatório
-                    if (opcao_usuario == 1) {
+                    if (opcao == 1) {
                         json = "{\"method\":\"read\",\"args\":[\"\"]}\n";
                     
-                    // Envia nova fortuna ao servidor
-                    } else if (opcao_usuario == 2) {
-                        System.out.println("Digite a nova fortuna:");
-                        String novaFortuna = br.readLine();
+                    // Adiciona nova fortuna ao Servidor
+                    } else if (opcao == 2) {                        
+                    	System.out.println("Digite a nova fortuna (digite % para finalizar):");
+                    	String novaFortuna = "";
+                    	String linha;
+                    	// Le várias linhas até o usuário digitar "%"
+                    	while (!(linha = br.readLine()).equals("%")) {
+                    	    novaFortuna += linha + "\n";
+                    	}// while
+                        
+                        
                         json = "{\"method\":\"write\",\"args\":[\"" + novaFortuna + "\"]}\n";
                     
-                    // Finaliza o programa
-                    } else if (opcao_usuario == 3) { 
-                        System.out.println("Encerrando conexão...");
-                        break;
+                    // Finaliza o Cliente
+                    } else if (opcao == 3) { 
+                    	
+                    	// Envia um aviso para o servidor antes de encerrar
+                        json = "{\"method\":\"close\",\"args\":[\"\"]}";
+                        saida.writeUTF(json);
+                        System.out.println("Conexão do Cliente finalizada.");
+                        // Sai do loop
+                        break; 
+                        
                     } else { 
                         System.out.println("Opção inválida!");
                         continue;
                     }//else
             
-		            //O valor [mensagem JSON] é enviado ao servidor
+		            // O valor [mensagem JSON] é enviado ao servidor
                     saida.writeUTF(json);
 		                    
-		            //Recebe-se o resultado do servidor
+		            // Recebe-se o resultado do servidor
 		            String resultado = entrada.readUTF();
 		            
-		            //Mostra o resultado na tela
+		            // Exibe a resposta recebida
 		            System.out.println("Resposta do servidor:");
-		            System.out.println(resultado);
-		            
+		            System.out.println(resultado);            
 		           
 		            
                 } catch (NumberFormatException e) {
@@ -91,8 +104,9 @@ public class Cliente {
                     System.err.println("Ocorreu um erro, tente novamente!");
                 }//try catch
                 
-        	} while (opcao_usuario != 3); //do
+        	} while (opcao != 3); //do
             
+            // Fecha tudo quando sair do menu
             socket.close();
             br.close();
           
