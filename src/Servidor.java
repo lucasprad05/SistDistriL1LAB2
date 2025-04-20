@@ -2,14 +2,12 @@
  * Laboratorio 2 de Sistemas Distribuidos
  * Sistemas Distribuídos - SDCO8A- 2025/1
  * Professor: Lucio Agostinho Rocha
- * 
+ *
  * Ana Carolina Ribeiro Miranda - 2208407
- * Lucas Castilho Pinto Prado - 
+ * Lucas Castilho Pinto Prado -
  */
 
 import java.io.*;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Random;
@@ -17,154 +15,143 @@ import java.util.ArrayList;
 
 public class Servidor {
 
-    private static Socket socket;
-    private static ServerSocket server;
-
-    private static DataInputStream entrada;
-    private static DataOutputStream saida;
-
+    private ServerSocket server;
     private int porta = 1025;
-    
+
     private String metodo = "";
     private String argumento = "";
 
-
     public void iniciar() {
-    	
         System.out.println("Servidor iniciado na porta: " + porta);
-        try {
 
-			// Criar porta de recepcao
-        	server = new ServerSocket(porta);
-            socket = server.accept(); // Processo fica bloqueado, à espera de conexões
-            
-            // Criar os fluxos de entrada e saida
-            entrada = new DataInputStream(socket.getInputStream());
-            saida = new DataOutputStream(socket.getOutputStream());
-            
-            // Processa mensagens enquanto o cliente estiver conectado
+        try {
+            server = new ServerSocket(porta);
+
+            while (true) {
+                Socket socketCliente = server.accept();
+                System.out.println("Cliente conectado: " + socketCliente.getInetAddress());
+
+                // cria uma thread pra tratar esse cliente
+                new Thread(() -> tratarCliente(socketCliente)).start();
+            }
+
+        } catch (Exception e) {
+            System.out.println("Erro no servidor: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    // Cada cliente é tratado aqui
+    public void tratarCliente(Socket socketCliente) {
+        try {
+            DataInputStream entrada = new DataInputStream(socketCliente.getInputStream());
+            DataOutputStream saida = new DataOutputStream(socketCliente.getOutputStream());
+
             while (true) {
                 String mensagem = entrada.readUTF();
-               
 
                 if (mensagem == null || mensagem.trim().isEmpty()) {
                     break;
-                }//if
+                }
 
-                // Analisa o que o Cliente solicitou
-                parser(mensagem); 
-                
+                // Corrigido: agora parser atualiza os atributos da classe
+                parser(mensagem);
+
                 String resposta = "";
 
-                if (metodo.equals("read")) {
-                	// Caso cliente solicite uma fortuna aleatória
-                    resposta = selecionarFortuna();
-                    				
-                } else if (metodo.equals("write")) {
-                	// Caso Cliente solicite adicionar uma nova fortuna
-                    adicionarFortuna(argumento);
-                    resposta = "Fortuna adicionada com sucesso.";
-                
-                } else if (metodo.equals("close")) {
-                	// Caso finalize a conexão com o Cliente
-                	resposta = "Conexão encerrada pelo cliente.";
-                    saida.writeUTF(resposta);
-                    break; // Fecha a conexão desse cliente, mas mantem do servidor 
-                
-                }else {
-                	// Caso Digite algo fora do esperado
-                	resposta = "Opção inválida.";
-                }//else
-                
-                // Envio dos dados (resultado)
-                saida.writeUTF(resposta);
+                switch (metodo) {
+                    case "read":
+                        resposta = selecionarFortuna();
+                        break;
+                    case "write":
+                        adicionarFortuna(argumento);
+                        resposta = "Fortuna adicionada com sucesso.";
+                        break;
+                    case "close":
+                        resposta = "Conexão encerrada pelo cliente.";
+                        saida.writeUTF(resposta);
+                        return; // finaliza essa thread, mas o servidor segue
+                    default:
+                        resposta = "Opção inválida.";
+                        break;
+                }
 
-            }//while
-            
-            // Fecha a conexão após sair do loop
-            socket.close();
+                saida.writeUTF(resposta);
+            }
+
+            socketCliente.close();
 
         } catch (Exception e) {
-            System.out.println("Erro: " + e.getMessage());
-            e.printStackTrace();
-        }//try catch
-    }//iniciar
+            System.out.println("Erro no cliente: " + e.getMessage());
+        }
+    }
 
-    // Ler uma fortuna aleatória do arquivo "fortune-br.txt"
+    // Pega uma fortuna aleatória do arquivo
     public String selecionarFortuna() {
-        ArrayList<String> fortunas = new ArrayList<String>();
-        
+        ArrayList<String> fortunas = new ArrayList<>();
+
         try {
             BufferedReader leitor = new BufferedReader(new FileReader("src/fortune-br.txt"));
             String linha;
-            StringBuffer fortuna = new StringBuffer();
-            
+            StringBuilder fortuna = new StringBuilder();
+
             while ((linha = leitor.readLine()) != null) {
-                if (linha.equals("%")) { // Fortuna separada por "%"
+                if (linha.equals("%")) {
                     fortunas.add(fortuna.toString());
-                    fortuna.setLength(0);  // Reinicia o buffer
+                    fortuna.setLength(0);
                 } else {
-                    fortuna.append(linha + "\n");
-                }//else
-            }//while
-            
+                    fortuna.append(linha).append("\n");
+                }
+            }
+
             leitor.close();
-            
+
         } catch (Exception e) {
             System.out.println("Erro na leitura do arquivo: " + e.getMessage());
-        }// try catch
-        
-        // Retorna uma fortuna aleatória 
+        }
+
         if (fortunas.size() > 0) {
             Random random = new Random();
             return fortunas.get(random.nextInt(fortunas.size()));
-        } else { 
-        	//Retorna uma mensagem caso não haja fortunas
+        } else {
             return "Nenhuma fortuna encontrada.";
-        }//else
-    }//selecionarFortuna
+        }
+    }
 
-    // Adicionar uma nova fortuna no arquivo "fortune-br.txt"
+    // Adiciona uma nova fortuna ao arquivo
     public void adicionarFortuna(String argumento) {
         try {
             BufferedWriter fortuna = new BufferedWriter(new FileWriter("src/fortune-br.txt", true));
-            fortuna.write(argumento); // Escreve a nova fortuna
+            fortuna.write(argumento);
             fortuna.newLine();
-            fortuna.write("%");  // Marca o fim da fortuna
+            fortuna.write("%");// O servidor escreve o %
             fortuna.newLine();
             fortuna.close();
         } catch (Exception e) {
             System.out.println("Erro ao escrever no arquivo: " + e.getMessage());
-        }//try cathc
-    }//adicionarFortuna
+        }
+    }
 
- // Descobre o método (read, write, close) 
+    // Corrigido: atualiza os atributos corretos da classe
     public void parser(String mensagem) {
-    	// Limpa os valores anteriores 
-        String metodo = "";
-        String argumento = "";
+        this.metodo = "";
+        this.argumento = "";
 
-        // Verifica se é leitura
         if (mensagem.contains("\"method\":\"read\"")) {
-            metodo = "read";
-            
-         // Verifica se é escrita    
-        } else if (mensagem.contains("\"method\":\"write\"")) {
-            metodo = "write";
+            this.metodo = "read";
 
-            // Pega o que está dentro do args
+        } else if (mensagem.contains("\"method\":\"write\"")) {
+            this.metodo = "write";
             int i1 = mensagem.indexOf("[\"") + 2;
             int i2 = mensagem.indexOf("\"]");
-            argumento = mensagem.substring(i1, i2);
-            
-        // Verifica se o cliente quer encerrar a conexão
+            this.argumento = mensagem.substring(i1, i2);
+
         } else if (mensagem.contains("\"method\":\"close\"")) {
-            metodo = "close";
-        }//else
-    }//parser
-    
-    
+            this.metodo = "close";
+        }
+    }
+
     public static void main(String[] args) {
         new Servidor().iniciar();
-    }//void
-}//Servidor
+    }
+}
