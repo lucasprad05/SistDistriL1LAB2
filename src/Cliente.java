@@ -1,11 +1,10 @@
-
 /**
  * Laboratorio 2 de Sistemas Distribuidos
  * Sistemas Distribuídos - SDCO8A- 2025/1
  * Professor: Lucio Agostinho  Rocha
  *
  * Ana Carolina Ribeiro Miranda - 2208407
- * Lucas Castilho Pinto Prado -
+ * Lucas Castilho Pinto Prado - 2367980
  */
 
 import java.io.BufferedReader;
