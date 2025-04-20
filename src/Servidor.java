@@ -27,7 +27,7 @@ public class Servidor {
         try {
             server = new ServerSocket(porta);
 
-            while (true) {
+            while (true) {//mantem operando apos close no cliente
                 Socket socketCliente = server.accept();
                 System.out.println("Cliente conectado: " + socketCliente.getInetAddress());
 
