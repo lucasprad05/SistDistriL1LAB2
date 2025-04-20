@@ -20,7 +20,7 @@ public class Cliente {
     private static DataInputStream entrada;
     private static DataOutputStream saida;
 
-    private int porta=1025;
+    private int porta=4000;
 
     public void iniciar(){
         System.out.println("Cliente iniciado na porta: "+porta);

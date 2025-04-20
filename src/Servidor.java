@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class Servidor {
 
     private ServerSocket server;
-    private int porta = 1025;
+    private int porta = 4000;
 
     private String metodo = "";
     private String argumento = "";
@@ -54,7 +54,6 @@ public class Servidor {
                     break;
                 }
 
-                // Corrigido: agora parser atualiza os atributos da classe
                 parser(mensagem);
 
                 String resposta = "";
@@ -132,7 +131,6 @@ public class Servidor {
         }
     }
 
-    // Corrigido: atualiza os atributos corretos da classe
     public void parser(String mensagem) {
         this.metodo = "";
         this.argumento = "";
