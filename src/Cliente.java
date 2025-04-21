@@ -19,7 +19,7 @@ public class Cliente {
     private static DataInputStream entrada;
     private static DataOutputStream saida;
 
-    private int porta=4000;
+    private int porta=1025;
 
     public void iniciar(){
         System.out.println("Cliente iniciado na porta: "+porta);
@@ -40,7 +40,7 @@ public class Cliente {
             // Enquanto o usuário desejar permanecer no menu Cliente
             do {
                 // Exibe o menu
-                System.out.println("\nBem-vindo Cliente! 😁");
+                System.out.println("\nBem-vindo Cliente!");
                 System.out.println(" ==== Menu de Opções: ==== ");
                 System.out.println("1 - Fortuna aleatória");
                 System.out.println("2 - Adicionar nova fortuna");

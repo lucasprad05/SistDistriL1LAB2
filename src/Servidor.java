@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class Servidor {
 
     private ServerSocket server;
-    private int porta = 4000;
+    private int porta = 1025;
 
     private String metodo = "";
     private String argumento = "";
@@ -50,7 +50,7 @@ public class Servidor {
             while (true) {
                 String mensagem = entrada.readUTF();
 
-                if (mensagem == null || mensagem.trim().isEmpty()) {
+                if (mensagem.trim().isEmpty()) {
                     break;
                 }
 
